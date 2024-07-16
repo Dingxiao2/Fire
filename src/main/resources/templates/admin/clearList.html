@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>实验分析</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" th:href="@{/css/font.css}">
+    <link rel="stylesheet" th:href="@{/css/xadmin.css}">
+    <script th:src="@{/lib/layui/layui.js}" charset="utf-8"></script>
+    <script type="text/javascript" th:src="@{/js/xadmin.js}"></script>
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <button class="layui-btn" onclick="xadmin.open('添加预警信息','/admin/toAddClear')"><i
+                            class="layui-icon"></i>添加预警信息
+                    </button>
+                </div>
+                <form class="layui-form layui-col-space5 layui-card-header">
+                    <input type="radio" name="isNull" value="F" title="全部记录" checked>
+                    <input type="radio" name="isNull" value="T" title="所有未消除记录">
+                    <div class="layui-inline layui-show-block">
+                        <button class="layui-btn" lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i>
+                        </button>
+                    </div>
+                </form>
+                <div class="layui-card-body layui-table-body layui-table-main">
+
+
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th style="text-align: center;">选择</th>
+                            <th colspan="2">监测员ID</th>
+                            <th colspan="2">林区ID</th>
+                            <th>预警时间</th>
+                            <th>消除预警时间</th>
+                            <th style="text-align: center">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="clear,clearStat:${clearList}">
+                            <td style="text-align: center" th:text="${clearStat.count}"></td>
+                            <td style="text-align: center">
+                                <input type="checkbox" name="id" th:value="${clear.fireID}" lay-skin="primary">
+                            </td>
+                            <td th:text="${clear.monitorID}"></td>
+                            <td>
+                                <a title="监测员信息"
+                                   th:onclick="xadmin.open('监测员信息',[['/admin/toMonitorList?id='+${clear.monitorID}]])"
+                                   href="javascript:;" class="layui-btn layui-btn-xs layui-btn-normal ">
+                                    <i class="layui-icon">&#xe60b;</i>监测员信息
+                                </a>
+                            </td>
+                            <td th:text="${clear.fireID}"></td>
+                            <td>
+                                <a title="林区详情"
+                                   th:onclick="xadmin.open('林区详情',[['/admin/toFireList?fireID='+${clear.fireID}]])"
+                                   href="javascript:; " class="layui-btn layui-btn-xs layui-btn-normal">
+                                    <i class="layui-icon">&#xe60b;</i>林区详情
+                                </a>
+                            </td>
+                            <td th:text="${#dates.format(clear.clearTime,'yyyy年MM月dd日 HH时mm分ss秒')}"></td>
+                            <td th:text="${#dates.format(clear.returnTime,'yyyy年MM月dd日 HH时mm分ss秒')}"></td>
+                            <td class="td-manage" style="text-align: center">
+                                <a title="归还"
+                                   th:if="${clear.returnTime} eq null"
+                                   th:onclick="member_del(this,[[${clear.monitorID}]],[[${clear.fireID}]],[[${clear.clearTime}]])"
+                                   class="layui-btn layui-btn-xs layui-btn-danger"
+                                   href="javascript:;">
+                                    <i class="layui-icon"></i>消除预警
+                                </a>
+                                <a title="消除"
+                                   th:if="${clear.returnTime} ne null"
+                                   class="layui-btn layui-btn-xs layui-btn-danger layui-btn-disabled"
+                                   href="javascript:;">
+                                    <i class="layui-icon"></i>消除预警
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body ">
+                    <div class="page">
+                        <div>
+                            <a class="prev" href="">&lt;&lt;</a>
+                            <a class="num" href="">1</a>
+                            <a class="next" href="">&gt;&gt;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    layui.use(['laydate', 'form'], function () {
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+
+        // 监听全选
+        form.on('checkbox(checkall)', function (data) {
+
+            if (data.elem.checked) {
+                $('tbody input').prop('checked', true);
+            } else {
+                $('tbody input').prop('checked', false);
+            }
+            form.render('checkbox');
+        });
+
+    });
+
+    /*用户-删除*/
+    function member_del(obj, monitorID, fireID, clearTime) {
+        layer.confirm('确认要消除吗？', function (index) {
+            //发异步删除数据
+
+            $.ajax({
+                url: "/admin/toReturnFire",
+                type: "POST",
+                data: {
+                    "monitorID": monitorID,
+                    "fireID": fireID,
+                    "clearTime": clearTime,
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res.state == 1) {
+                        layer.msg('已消除!', {icon: 1, time: 1000}, function () {
+                            window.location.reload();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                },
+            });
+        });
+    }
+
+
+    function delAll(argument) {
+        var ids = [];
+
+        // 获取选中的id
+        $('tbody input').each(function (index, el) {
+            if ($(this).prop('checked')) {
+                ids.push($(this).val())
+            }
+        });
+
+        layer.confirm('确认要删除吗？' + ids.toString(), function (index) {
+            //捉到所有被选中的，发异步进行删除
+            layer.msg('删除成功', {icon: 1});
+            $(".layui-form-checked").not('.header').parents('tr').remove();
+        });
+    }
+</script>
+</html>

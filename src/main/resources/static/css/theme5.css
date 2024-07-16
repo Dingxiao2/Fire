@@ -1,0 +1,27 @@
+body{
+    background:#EEF5F9 !important;
+}
+.container{
+    background:linear-gradient(to left, #ff1515, #e34927);
+}
+
+.left-nav{
+    background:#fff !important;
+}
+
+.left-nav a{
+    color:#686a76 !important;
+}
+.left-nav a.active{
+    background: linear-gradient(to left, #e34927, #f5053b) !important;
+    color: #fff !important;
+    border-color: #9f1818 !important;
+}
+.left-nav a:hover{
+    background: linear-gradient(to left, #9f1818, #f5053b) !important;
+    color: #fff !important;
+    border-color: #e34927 !important;
+}
+.container .logo a{
+    background: rgba(0,0,0,0) !important;
+}
